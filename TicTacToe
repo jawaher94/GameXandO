@@ -1,0 +1,202 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
+import java.util.Timer;
+
+public class TicTacToe implements ActionListener {
+    Random random = new Random();
+    JFrame frame = new JFrame();
+    JPanel titleJPanel = new JPanel();
+    JPanel btnJPanel = new JPanel();
+    JLabel textJLabel = new JLabel();
+    JButton[] buttons = new JButton[9];
+    boolean player1Turn;
+    TimerPanel timerPanel;
+
+   public TicTacToe() {
+        showInstructions();
+   }
+
+    public void showInstructions() {
+        Instructions instructionsFrame = new Instructions(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //instructionsFrame.dispose();
+                createGameFrame();
+            }
+        });
+        instructionsFrame.setVisible(true);
+    }
+
+    public void createGameFrame() {
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 800);
+        frame.setLayout(new BorderLayout());
+        frame.getContentPane().setBackground(Color.GRAY);
+        frame.setTitle("TicTacToe");
+        frame.setVisible(true);
+
+        textJLabel.setBackground(Color.BLACK);
+        textJLabel.setForeground(Color.RED);
+        textJLabel.setFont(new Font("Ink Free", Font.ITALIC, 75));
+        textJLabel.setHorizontalAlignment(JLabel.CENTER);
+        textJLabel.setText("Tic Tac Toe");
+        textJLabel.setOpaque(true);
+
+        btnJPanel.setLayout(new GridLayout(3, 3));
+        for (int i = 0; i < 9; i++) {
+            buttons[i] = new JButton();
+            btnJPanel.add(buttons[i]);
+            buttons[i].setFont(new Font("MM", Font.ITALIC, 150));
+            buttons[i].setFocusable(false);
+            buttons[i].addActionListener(this);
+        }
+
+        titleJPanel.setLayout(new BorderLayout());
+        titleJPanel.setBounds(0, 0, 800, 100);
+        titleJPanel.add(textJLabel);
+
+        timerPanel = new TimerPanel(30, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textJLabel.setText("Game Stopped");
+            }
+        }, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textJLabel.setText(player1Turn ? "X Turn" : "O Turn");
+            }
+        }, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textJLabel.setText("Time's up! Game Over.");
+                disableButtons();
+            }
+        });
+
+        frame.add(titleJPanel, BorderLayout.NORTH);
+        frame.add(btnJPanel, BorderLayout.CENTER);
+        frame.add(timerPanel, BorderLayout.SOUTH);
+
+        firstTurn();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (timerPanel.isGameStopped()) return;
+
+        for (int i = 0; i < 9; i++) {
+            if (e.getSource() == buttons[i]) {
+                if (player1Turn) {
+                    if (buttons[i].getText().equals("")) {
+                        buttons[i].setText("X");
+                        buttons[i].setForeground(Color.RED);
+                        player1Turn = false;
+                        textJLabel.setText("O turn");
+                        checkWinner();
+                    }
+                } else {
+                    if (buttons[i].getText().equals("")) {
+                        buttons[i].setText("O");
+                        buttons[i].setForeground(Color.GREEN);
+                        player1Turn = true;
+                        textJLabel.setText("X turn");
+                        checkWinner();
+                    }
+                }
+            }
+        }
+    }
+
+    public void firstTurn() {
+        if (random.nextInt(2) == 0) {
+            player1Turn = true;
+            textJLabel.setText("X Turn");
+        } else {
+            player1Turn = false;
+            textJLabel.setText("O Turn");
+        }
+    }
+
+    public void checkWinner() {
+        if (checkCombination("X", 0, 1, 2) || checkCombination("X", 3, 4, 5) ||
+                checkCombination("X", 6, 7, 8) || checkCombination("X", 0, 3, 6) ||
+                checkCombination("X", 1, 4, 7) || checkCombination("X", 2, 5, 8) ||
+                checkCombination("X", 0, 4, 8) || checkCombination("X", 2, 4, 6)) {
+            xWins();
+        } else if (checkCombination("O", 0, 1, 2) || checkCombination("O", 3, 4, 5) ||
+                checkCombination("O", 6, 7, 8) || checkCombination("O", 0, 3, 6) ||
+                checkCombination("O", 1, 4, 7) || checkCombination("O", 2, 5, 8) ||
+                checkCombination("O", 0, 4, 8) || checkCombination("O", 2, 4, 6)) {
+            oWins();
+        }
+    }
+
+    private boolean checkCombination(String player, int a, int b, int c) {
+        return buttons[a].getText().equals(player) && buttons[b].getText().equals(player) && buttons[c].getText().equals(player);
+    }
+
+
+
+
+    public void xWins() {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setEnabled(false);
+        }
+        textJLabel.setText("X Wins");
+        int choice = JOptionPane.showOptionDialog(frame,
+                "X Wins! What would you like to do?",
+                "Game Over",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{"Play Again", "Exit"},
+                "Play Again");
+
+        if (choice == JOptionPane.YES_OPTION) {
+            resetGame();
+        } else {
+            System.exit(0); // Exit the game
+        }
+    }
+
+    public void oWins() {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setEnabled(false);
+        }
+        textJLabel.setText("O Wins");
+        int choice = JOptionPane.showOptionDialog(frame,
+                "O Wins! What would you like to do?",
+                "Game Over",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{"Play Again", "Exit"},
+                "Play Again");
+
+        if (choice == JOptionPane.YES_OPTION) {
+            resetGame();
+
+        } else {
+            System.exit(0);
+        }
+    }
+
+    public void resetGame() {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setEnabled(true);
+            buttons[i].setText("");
+        }
+        firstTurn();
+        timerPanel.resetTimer();
+        textJLabel.setText(player1Turn ? "X Turn" : "O Turn");
+    }
+    public void disableButtons() {
+        for (JButton button : buttons) {
+            button.setEnabled(false);
+        }
+    }
+
+}
